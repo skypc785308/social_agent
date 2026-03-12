@@ -644,6 +644,8 @@
             const btnReset = document.getElementById('btn-reset');
             const welcome = document.getElementById('welcome');
 
+            const API_KEY = "__API_KEY_PLACEHOLDER__";
+
             let sessionId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
             let isLoading = false;
             let isComposing = false;
@@ -694,7 +696,7 @@
                 try {
                     await fetch('/api/reset', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
                         body: JSON.stringify({ session_id: sessionId }),
                     });
                 } catch (_) { }
@@ -794,7 +796,7 @@
                 try {
                     const res = await fetch('/api/chat', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
                         body: JSON.stringify({ message: text, session_id: sessionId }),
                     });
 

@@ -5,9 +5,10 @@ import logging
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 
 from app.schemas import ChatRequest, ChatResponse, ResetRequest, ResetResponse
@@ -18,6 +19,17 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+API_CHAT_KEY = os.getenv("API_CHAT_KEY")
+if not API_CHAT_KEY:
+    raise RuntimeError("API_CHAT_KEY environment variable is not set")
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def verify_api_key(key: str = Security(api_key_header)):
+    if key != API_CHAT_KEY:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or missing API key")
 
 
 @asynccontextmanager
@@ -57,10 +69,11 @@ async def serve_frontend():
     if not os.path.exists(index_path):
         raise HTTPException(status_code=404, detail="Frontend not found")
     with open(index_path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+        content = f.read().replace("__API_KEY_PLACEHOLDER__", API_CHAT_KEY)
+    return HTMLResponse(content=content)
 
 
-@app.post("/api/chat", response_model=ChatResponse)
+@app.post("/api/chat", response_model=ChatResponse, dependencies=[Depends(verify_api_key)])
 async def chat_endpoint(req: ChatRequest):
     """Send a message to the sentiment analysis agent."""
     try:
@@ -73,7 +86,7 @@ async def chat_endpoint(req: ChatRequest):
         raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
 
 
-@app.post("/api/reset", response_model=ResetResponse)
+@app.post("/api/reset", response_model=ResetResponse, dependencies=[Depends(verify_api_key)])
 async def reset_endpoint(req: ResetRequest):
     """Reset conversation memory for a session."""
     reset_memory(req.session_id)
