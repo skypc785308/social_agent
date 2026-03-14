@@ -3,7 +3,7 @@
 import json
 import logging
 from datetime import datetime, timedelta
-from langchain.tools import tool
+from langchain_core.tools import tool
 
 from app.agent import qsearch_client
 from app.agent.qsearch_client import QSearchAPIError

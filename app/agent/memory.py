@@ -1,18 +1,18 @@
-"""Session-based conversation memory using LangGraph MemorySaver.
+"""Session-based conversation memory using LangGraph InMemorySaver.
 
 In LangChain v1, conversation memory is handled by LangGraph's checkpointer.
-Each session is identified by a `thread_id` in the config, and the MemorySaver
+Each session is identified by a `thread_id` in the config, and the InMemorySaver
 automatically persists and retrieves conversation state per thread.
 """
 
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 
 # Singleton in-memory checkpointer — stores all sessions automatically
-_checkpointer = MemorySaver()
+_checkpointer = InMemorySaver()
 
 
-def get_checkpointer() -> MemorySaver:
-    """Get the shared MemorySaver instance."""
+def get_checkpointer() -> InMemorySaver:
+    """Get the shared InMemorySaver instance."""
     return _checkpointer
 
 
